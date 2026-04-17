@@ -19,7 +19,7 @@ library(emmeans)
 ## Read Dataset
 
 ```{r}
-supply <- Cleaned_Supply_Chain_Data
+supply <- read_excel("Cleaned_Supply_Chain_Data.xlsx")
 names(supply)
 ```
 
