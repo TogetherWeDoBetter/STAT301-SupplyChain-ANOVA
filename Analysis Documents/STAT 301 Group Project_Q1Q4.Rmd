@@ -1,0 +1,410 @@
+---
+title: "STAT 301 Group Project"
+author: "Feifei Li"
+date: "2026-04-09"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load library
+```{r}
+library(tidyverse)   
+library(dplyr)       
+library(ggplot2)     
+library(readxl)
+library(car)
+```
+## View the raw dataset
+Raw CSV → Fix duplicates → Clean names → Handle NAs → 
+Remove duplicates → Convert types → Feature engineering → 
+Validation → Clean dataset 
+
+```{r}
+# import dataset
+df <- read.csv("original_supply_chain.csv", stringsAsFactors = FALSE)
+head(df)
+```
+
+# HANDLE Ambiguous COLUMN NAMES
+
+```{r}
+#  current column names
+colnames(df)
+# Problem: "Lead time" and "Lead times" are confusing, after reading the notebook in Kaggle,we need to make sure the lead_time are clearly stated 
+```
+# Rename the ambiguous columns
+
+```{r}
+# Rename ambiguous columns
+df <- df %>%
+  rename(
+    Supplier_Lead_Time= `Lead.times`,           # first Lead time column
+    Order_Lead_Time = `Lead.time`,           # the second lead time column
+    manufacturing_lead_time = `Manufacturing.lead.time`,
+    Total_Costs = `Costs`   # The last column
+  )
+
+# Verify fix
+colnames(df)
+
+```
+# CHECK FOR MISSING VALUES
+```{r}
+# Summary of missing values by column
+df %>%
+  summarise_all(~ sum(is.na(.))) %>%
+  pivot_longer(everything(), names_to = "column", values_to = "na_count") %>%
+  filter(na_count > 0)
+# Check for missing values (handle if any)
+df <- df %>%
+  drop_na()  # Simple approach - remove rows with NAs
+
+```
+# Check for duplicates
+```{r}
+# Check duplicate rows based on all columns
+duplicate_rows <- df %>% duplicated()
+sum(duplicate_rows)
+
+# View duplicate rows if any
+df[duplicate_rows, ]
+
+```
+#
+
+```{r}
+# Convert categorical columns to factors
+df <- df %>%
+  mutate(
+    `Product.type` = as.factor(`Product.type`),
+    `Customer.demographics` = as.factor(`Customer.demographics`),
+    `Shipping.carriers` = as.factor(`Shipping.carriers`),
+    `Supplier.name` = as.factor(`Supplier.name`),
+    `Location` = as.factor(`Location`),
+    `Inspection.results` = as.factor(`Inspection.results`),
+    `Transportation.modes` = as.factor(`Transportation.modes`),
+    `Routes` = as.factor(`Routes`)
+  )
+```
+
+## VERIFY NUMERICAL VARIABLE
+```{r}
+# Verify numeric columns
+numeric_cols <- df %>% select(where(is.numeric)) %>% colnames()
+print(paste("Numeric columns:", paste(numeric_cols, collapse = ", ")))
+```
+## OUTLIER DETECTION & HANDLING
+```{r}
+# Function to detect outliers using IQR method
+detect_outliers <- function(x) {
+  Q1 <- quantile(x, 0.25, na.rm = TRUE)
+  Q3 <- quantile(x, 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  lower_bound <- Q1 - 1.5 * IQR
+  upper_bound <- Q3 + 1.5 * IQR
+  return(x < lower_bound | x > upper_bound)
+}
+
+# Apply to numeric columns and count outliers
+df %>%
+  select(where(is.numeric)) %>%
+  summarise_all(~ sum(detect_outliers(.))) %>%
+  pivot_longer(everything(), names_to = "column", values_to = "outlier_count") %>%
+  filter(outlier_count > 0)
+# Visualize outliers
+df %>%
+  select(Price, Number.of.products.sold, Revenue.generated,Stock.levels,Defect.rates ) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+  ggplot(aes(y = value)) +
+  geom_boxplot() +
+  facet_wrap(~variable, scales = "free") +
+  labs(title = "Outlier Detection for Key Variables")
+
+```
+## Complete ANOVA-Ready Dataset and make a new dataset named Cleaned_Supply_Chain_Data
+
+```{r}
+ # Create cleaned dataset as a new object
+Cleaned_Supply_Chain_Data <- df
+head(Cleaned_Supply_Chain_Data)
+```
+# Write the new dataset
+```{r}
+# Check dimensions
+cat("Original dataset rows:", nrow(df), "\n")
+cat("Cleaned dataset rows:", nrow(Cleaned_Supply_Chain_Data), "\n")
+cat("Cleaned dataset columns:", ncol(Cleaned_Supply_Chain_Data), "\n")
+
+# Save the cleaned dataset as a CSV file
+write.csv(Cleaned_Supply_Chain_Data, "Cleaned_Supply_Chain_Data.csv", row.names = FALSE)
+
+# Also save as RDS to preserve data types (factors, etc.)
+saveRDS(Cleaned_Supply_Chain_Data, "Cleaned_Supply_Chain_Data.rds")
+
+# Optional: Save in your working directory with a message
+cat("✅ Cleaned dataset saved as 'Cleaned_Supply_Chain_Data.csv'\n")
+cat("📁 Location:", getwd(), "\n")
+```
+# VERFIY
+```{r}
+Cleaned_df <- read.csv("Cleaned_Supply_Chain_Data.csv", stringsAsFactors = FALSE)
+head(Cleaned_df)
+cat("\n✅ Cleaned dataset successfully created and saved!\n")
+```
+#
+
+```{r}
+# Summary of ALL columns (numeric + categorical)
+summary(Cleaned_Supply_Chain_Data)
+```
+# Summary on Separate summaries for better organization
+```{r}
+# Numeric columns summary
+cat("=== NUMERIC COLUMNS SUMMARY ===\n")
+numeric_cols <- Cleaned_Supply_Chain_Data %>% select(where(is.numeric))
+summary(numeric_cols)
+
+# Categorical columns summary
+cat("\n=== CATEGORICAL COLUMNS SUMMARY ===\n")
+categorical_cols <- Cleaned_Supply_Chain_Data %>% select(where(is.factor))
+summary(categorical_cols)
+```
+## ANOVA TESTS
+# Q1 :Research Question: Does the Product Type significantly affect the Manufacturing Costs?
+```{r}
+# ============================================
+# QUESTION 1: One-Way ANOVA 
+# Does Product Type significantly affect Manufacturing Costs?
+# ============================================
+ 
+# H_0:μ_=μ_green=μ_blue
+# H_a:at least two means are different
+
+model1 <- aov(Manufacturing.costs ~ Product.type, data = Cleaned_df)
+summary(model1)
+#use TukeyHSD(model) in R to do the multiple comparison
+# determine which means are different.
+TukeyHSD(model1)
+
+```
+# Graph
+```{r}
+# ============================================
+# QUESTION 1: One-Way ANOVA Visualization 
+# Does Product Type significantly affect Manufacturing Costs?
+# ============================================
+# ensure product.type is a factor
+Cleaned_df$Product.type <- as.factor(Cleaned_df$Product.type)
+Cleaned_df%>%
+  group_by(Product.type)%>%
+  summarize(AveManufacturingCosts = mean(Manufacturing.costs),
+            seManufacturingCosts=sd(Manufacturing.costs)/sqrt(length(Manufacturing.costs)),
+            tstar = qt(1-0.05/2, length(Manufacturing.costs)-1)
+            )%>%
+  ggplot(aes(x= Product.type,y=AveManufacturingCosts))+
+  geom_point()+geom_errorbar(aes(ymin = AveManufacturingCosts-seManufacturingCosts*tstar, 
+                                 ymax = AveManufacturingCosts +seManufacturingCosts*tstar))+
+  labs(title = "Mean Manufacturing Costs by Product Type",
+       x = "Product Type",
+       y = "Mean Manufacturing Costs")
+
+```
+The Q1&Q4 as final questions in our final analysis
+
+```{r}
+# ============================================
+# QUESTION 1: One-Way ANOVA
+# Does Product Type significantly affect Manufacturing Costs?
+# Module 3 — Four Steps of ANOVA
+# ============================================
+
+# Step 1: State hypotheses (in report)
+# H0: mu_cosmetics = mu_haircare = mu_skincare
+# Ha: at least two means are different
+
+# Step 2: Choose one-way ANOVA
+# One categorical IV (Product.type, 3 levels), one numeric DV (Manufacturing.costs)
+# ANOVA is chosen over multiple t-tests because running 3 pairwise t-tests
+# at alpha=0.05 inflates Type I error — overall confidence drops from 95% to ~85.7%
+# ANOVA performs one single test using F = MSB / MSW
+
+# Ensure Product.type is a factor before modeling
+Cleaned_df$Product.type <- as.factor(Cleaned_df$Product.type)
+
+# Fit one-way ANOVA model
+model1 <- aov(Manufacturing.costs ~ Product.type, data = Cleaned_df)
+
+# Step 3: Get test statistic and p-value
+summary(model1)
+
+# Step 4: Decision
+# p = 0.692 > 0.05 → fail to reject H0
+# NOTE: TukeyHSD is NOT run because the omnibus F-test was not significant
+# Per Module 3: post-hoc is only needed when ANOVA shows significant differences
+
+# ============================================
+# Q1 VISUALIZATION — Bar chart with 95% CI error bars
+# Professor instruction: bar chart for means, NOT boxplot (boxplot = medians)
+# ============================================
+
+# Compute group means, standard errors, and 95% CI bounds per group
+q1_summary <- Cleaned_df %>%
+  group_by(Product.type) %>%
+  summarize(
+    n                     = n(),
+    AveManufacturingCosts = mean(Manufacturing.costs),
+    seManufacturingCosts  = sd(Manufacturing.costs) / sqrt(n()),
+    tstar                 = qt(1 - 0.05 / 2, n() - 1),
+    CI_low                = AveManufacturingCosts - seManufacturingCosts * tstar,
+    CI_high               = AveManufacturingCosts + seManufacturingCosts * tstar
+  )
+
+# geom_col() draws bar from 0 up to the mean — shows mean magnitude visually
+# geom_errorbar() adds 95% CI whiskers on top of each bar
+# First geom_text() shows the exact mean dollar value above each error bar
+# Second geom_text() shows sample size inside each bar (unbalanced design)
+ggplot(q1_summary, aes(x = Product.type,
+                        y = AveManufacturingCosts,
+                        fill = Product.type)) +
+  geom_col(width = 0.5, color = "black", alpha = 0.8) +
+  geom_errorbar(
+    aes(ymin = CI_low, ymax = CI_high),
+    width = 0.15,
+    linewidth = 0.8
+  ) +
+  geom_text(
+    aes(y = CI_high,
+        label = paste0("Mean=$", round(AveManufacturingCosts, 2))),
+    vjust = -0.6,
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(y = 3, label = paste0("n = ", n)),
+    vjust = 0,
+    size = 3.2,
+    color = "white",
+    fontface = "italic"
+  ) +
+  scale_fill_manual(values = c("cosmetics" = "#4472C4",
+                                "haircare"  = "#ED7D31",
+                                "skincare"  = "#70AD47")) +
+  coord_cartesian(ylim = c(0, 70)) +
+  labs(
+    title    = "Figure 1: Mean Manufacturing Costs by Product Type",
+    subtitle = "Error bars represent 95% confidence intervals",
+    x        = "Product Type",
+    y        = "Mean Manufacturing Costs ($)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+# q4
+```{r}
+# ============================================
+# QUESTION 4: Two-Way ANOVA with Interaction
+# Do transportation mode and product type interact to affect defect rates?
+# Module 4 — Factorial Design
+# ============================================
+
+# Step 1: State hypotheses (in report)
+# H0 (Transportation Mode): mean defect rates equal across all modes
+# Ha (Transportation Mode): at least one mode differs
+# H0 (Product Type): mean defect rates equal across all product types
+# Ha (Product Type): at least one product type differs
+# H0 (Interaction): no interaction between transportation mode and product type
+# Ha (Interaction): the effect of transportation mode depends on product type
+
+# Step 2: Choose two-way ANOVA
+# Two categorical IVs, one numeric DV — factorial design (Module 4)
+# Design is UNBALANCED (cell sizes range 4–13, see table below)
+# Therefore use lm() + Anova(type="II") from car package
+# NOT aov() — aov() uses Type I SS which gives order-dependent results
+
+# 4A. Select variables and check cell counts to confirm unbalanced design
+q4_data <- Cleaned_df %>%
+  select(Transportation.modes, Product.type, Defect.rates) %>%
+  drop_na()
+
+# Cell counts table — confirms unbalanced structure requiring Type II SS
+table(q4_data$Transportation.modes, q4_data$Product.type)
+
+# 4B. Descriptive statistics — mean and SD per cell
+# Gives a 12-row summary (4 modes x 3 product types)
+q4_summary <- q4_data %>%
+  group_by(Transportation.modes, Product.type) %>%
+  summarise(
+    n           = n(),
+    mean_defect = mean(Defect.rates),
+    sd_defect   = sd(Defect.rates),
+    .groups = "drop"
+  )
+
+q4_summary
+
+# 4C. Interaction plot — taught in Module 4 as the key visualization
+# Non-parallel lines indicate a potential interaction
+# The sharp divergence under Air between cosmetics and haircare
+# is the primary visual signal of the significant interaction
+interaction.plot(
+  x.factor     = q4_data$Transportation.modes,
+  trace.factor  = q4_data$Product.type,
+  response      = q4_data$Defect.rates,
+  fun           = mean,
+  type          = "b",
+  lwd           = 2,
+  ylab          = "Mean Defect Rate",
+  xlab          = "Transportation Mode",
+  trace.label   = "Product Type",
+  main          = "Interaction Plot: Transportation Mode and Product Type"
+)
+
+# 4D. Step 3: Fit model and get test statistics and p-values
+# lm() + Anova(type="II") is the correct approach for unbalanced designs
+# as taught in Module 4 slide 25
+library(car)
+q4_model <- lm(Defect.rates ~ Transportation.modes * Product.type,
+               data = q4_data)
+Anova(q4_model, type = "II")
+
+# Step 4: Decision
+# Transportation Mode: p = 0.263 > 0.05 → fail to reject H0
+# Product Type:        p = 0.539 > 0.05 → fail to reject H0
+# Interaction:         p = 0.014 < 0.05 → REJECT H0 ✅ significant interaction
+
+# 4E. Post-hoc when interaction is significant
+# Per Module 4 slide 21: when interaction is significant,
+# filter to one level and compare the other factor within it
+# Since interaction is significant, we separate by Transportation Mode
+# and compare Product Type within each mode using one-way ANOVA
+# (3 product type levels → one-way ANOVA, not t-test)
+
+# Air
+air_data <- q4_data %>% filter(Transportation.modes == "Air")
+air_model <- aov(Defect.rates ~ Product.type, data = air_data)
+summary(air_model)
+TukeyHSD(air_model)
+
+# Rail
+rail_data <- q4_data %>% filter(Transportation.modes == "Rail")
+rail_model <- aov(Defect.rates ~ Product.type, data = rail_data)
+summary(rail_model)
+
+# Road
+road_data <- q4_data %>% filter(Transportation.modes == "Road")
+road_model <- aov(Defect.rates ~ Product.type, data = road_data)
+summary(road_model)
+
+# Sea
+sea_data <- q4_data %>% filter(Transportation.modes == "Sea")
+sea_model <- aov(Defect.rates ~ Product.type, data = sea_data)
+summary(sea_model)
+```
+```
+
