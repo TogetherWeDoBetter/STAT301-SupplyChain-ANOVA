@@ -80,7 +80,7 @@ During the project, four research questions were explored before selecting the t
 
 **Hypotheses:**
 - H₀: μ_cosmetics = μ_haircare = μ_skincare
-- H₁: At least two means are different
+- H₁: At least one product type mean is different from the others
 
 **ANOVA Results:**
 
