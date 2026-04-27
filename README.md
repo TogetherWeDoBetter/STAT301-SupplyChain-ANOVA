@@ -1,3 +1,4 @@
+
 # STAT 301 Group Project — Supply Chain ANOVA Analysis
 
 ## Overview
@@ -8,7 +9,7 @@ This project applies **Analysis of Variance (ANOVA)** methods to a real-world su
 - **Observations:** 100
 - **Variables:** 24
 - **Tools:** R (primary statistical analysis), JMP (exploratory distribution analysis)
-- **Final Report:** `STAT301_FinalProject_Li_Stoven.docx`
+- **Final Report:** `STAT301_FinalProject_Li_Stoven`
 
 ---
 
@@ -79,7 +80,7 @@ During the project, four research questions were explored before selecting the t
 
 **Hypotheses:**
 - H₀: μ_cosmetics = μ_haircare = μ_skincare
-- Ha : At least two product type mean are different.
+- H₁: At least one product type has a different mean manufacturing cost
 
 **ANOVA Results:**
 
@@ -114,9 +115,9 @@ Anova(q4_model, type = "II")
 ```
 
 **Hypotheses (three sets):**
-- H₀ / Ha (Transportation Mode): Mean defect rates equal / At least two means are different.
-- H₀ / Ha (Product Type): Mean defect rates equal /  At least two means are different. 
-- H₀ / Ha (Interaction): No interaction / the effect of transportation mode depends on product type
+- H₀ / H₁ (Transportation Mode): Mean defect rates equal / at least one mode differs
+- H₀ / H₁ (Product Type): Mean defect rates equal / at least one product type differs
+- H₀ / H₁ (Interaction): No interaction / the effect of transportation mode depends on product type
 
 **Unbalanced Cell Counts:**
 
@@ -157,9 +158,9 @@ TukeyHSD(air_model)
 | Sea | 2, 14 | 2.965 | 0.084 | Fail to reject H₀ |
 
 **Tukey HSD within Air:**
-- Haircare vs. Cosmetics: difference = +2.525, adjusted p = **0.017** ✅ significant
-- Skincare vs. Cosmetics: adjusted p = 0.239 — not significant
-- Skincare vs. Haircare: adjusted p = 0.175 — not significant
+- Haircare vs. Cosmetics: difference = +2.525328, adjusted p = **0.0168950** ✅ significant
+- Skincare vs. Cosmetics: difference = +1.295037, adjusted p = 0.2390981 — not significant
+- Skincare vs. Haircare: difference = −1.230291, adjusted p = 0.1747089 — not significant
 
 **Conclusion:** The significant interaction is driven entirely by Air transportation. Haircare products have significantly higher defect rates than cosmetics when shipped by air. No meaningful product-type differences exist under rail, road, or sea transportation. The risk is not inherent to haircare or to air transport in isolation — it emerges from their specific combination.
 
@@ -167,7 +168,7 @@ TukeyHSD(air_model)
 
 ## Key Finding
 
-The most important insight is the **significant interaction between Transportation Mode and Product Type** (p = 0.014). Neither factor alone predicts defect rates, but together they reveal a meaningful pattern: **air transportation is associated with significantly higher defect rates for haircare products compared to cosmetics** (Tukey adjusted p = 0.017, difference = +2.525).
+The most important insight is the **significant interaction between Transportation Mode and Product Type** (p = 0.014). Neither factor alone predicts defect rates, but together they reveal a meaningful pattern: **air transportation is associated with significantly higher defect rates for haircare products compared to cosmetics** (Tukey adjusted p = 0.0168950, difference = +2.525328).
 
 This is made more compelling by the Q1 result: product type does not affect manufacturing costs (p = 0.692) either — meaning product category is not a general driver of supply chain performance, but it becomes critically important when combined with the wrong logistics decision.
 
@@ -189,8 +190,8 @@ This is made more compelling by the Q1 result: product type does not affect manu
 |---|---|
 | `original_supply_chain.csv` | Raw dataset from Kaggle before cleaning |
 | `Cleaned_Supply_Chain_Data.csv` | Final cleaned dataset used for all analyses |
-| `STAT_301_Group_Project_Q1Q4.Rmd` | Final R Markdown with all Q1 and Q4 analysis code |
-| `STAT301_FINAL_v6.docx` | Final submitted report (Q1 + Q4, double-spaced, 2–6 pages) |
+| `FinalProjectQ1.Rmd` & `FinalProjectQ2.Rmd| Final R Markdown with all Q1 and Q4 analysis code |
+| `STAT301_FinalProject_Li_Stoven.docx` | Final submitted report (Q1 + Q4, double-spaced, 2–6 pages) |
 
 ---
 
