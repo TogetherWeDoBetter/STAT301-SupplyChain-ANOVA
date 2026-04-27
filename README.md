@@ -8,7 +8,7 @@ This project applies **Analysis of Variance (ANOVA)** methods to a real-world su
 - **Observations:** 100
 - **Variables:** 24
 - **Tools:** R (primary statistical analysis), JMP (exploratory distribution analysis)
-- **Final Report:** `STAT301_FINAL_Report.docx`
+- **Final Report:** `STAT301_FinalProject_Li_Stoven.docx`
 
 ---
 
