@@ -79,7 +79,7 @@ During the project, four research questions were explored before selecting the t
 
 **Hypotheses:**
 - H₀: μ_cosmetics = μ_haircare = μ_skincare
-- H₁: At least one product type has a different mean manufacturing cost
+- Ha : At least two product type mean are different.
 
 **ANOVA Results:**
 
@@ -114,9 +114,9 @@ Anova(q4_model, type = "II")
 ```
 
 **Hypotheses (three sets):**
-- H₀ / H₁ (Transportation Mode): Mean defect rates equal / at least one mode differs
-- H₀ / H₁ (Product Type): Mean defect rates equal / at least one product type differs
-- H₀ / H₁ (Interaction): No interaction / the effect of transportation mode depends on product type
+- H₀ / Ha (Transportation Mode): Mean defect rates equal / At least two means are different.
+- H₀ / Ha (Product Type): Mean defect rates equal /  At least two means are different. 
+- H₀ / Ha (Interaction): No interaction / the effect of transportation mode depends on product type
 
 **Unbalanced Cell Counts:**
 
