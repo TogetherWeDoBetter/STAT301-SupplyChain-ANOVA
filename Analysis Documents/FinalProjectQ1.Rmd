@@ -1,0 +1,71 @@
+---
+title: "FinalProjectQ1"
+author: "Kathryn Stoven"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries
+```{r}
+library(readxl)
+library(tidyverse)
+library(car)
+```
+
+## Dataset
+```{r}
+supply <- read_excel("Cleaned_Supply_Chain_Data.xlsx")
+names(supply)
+```
+
+# Basic data cleaning
+```{r}
+supply <- supply %>%
+  mutate(
+    Supplier.name = as.factor(Supplier.name),
+    Transportation.modes = as.factor(Transportation.modes),
+    Product.type = as.factor(Product.type)
+  )
+
+# Verify structure
+str(supply)
+```
+
+# QUESTION 1: One-Way ANOVA Model
+Research Question:
+Does the product type significantly affect manufacturing costs?
+DV = Manufacturing.costs (numeric)
+IV = Product.type (categorical)
+
+H_0:μ_cosmetics = μ_haircare = μ_skincare 
+H_a:at least two means are different
+```{r}
+model1 <- aov(Manufacturing.costs ~ Product.type, data = supply)
+summary(model1)
+
+# TukeyHSD is shown for completeness, but because the ANOVA is not significant,
+# no post-hoc interpretation is needed.
+TukeyHSD(model1)
+```
+
+# QUESTION 1: One-Way ANOVA Visualization
+```{r}
+supply$Product.type <- as.factor(supply$Product.type)
+supply%>%
+  group_by(Product.type)%>%
+  summarize(AveManufacturingCosts = mean(Manufacturing.costs),
+            seManufacturingCosts=sd(Manufacturing.costs)/sqrt(length(Manufacturing.costs)),
+            tstar = qt(1-0.05/2, length(Manufacturing.costs)-1)
+            )%>%
+  ggplot(aes(x= Product.type,y=AveManufacturingCosts))+
+  geom_point()+geom_errorbar(aes(ymin = AveManufacturingCosts-seManufacturingCosts*tstar, 
+                                 ymax = AveManufacturingCosts +seManufacturingCosts*tstar))+
+  labs(title = "Mean Manufacturing Costs by Product Type",
+       x = "Product Type",
+       y = "Mean Manufacturing Costs")
+
+```
