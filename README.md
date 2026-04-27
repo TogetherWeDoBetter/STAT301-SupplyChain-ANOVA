@@ -1,4 +1,3 @@
-
 # STAT 301 Group Project — Supply Chain ANOVA Analysis
 
 ## Overview
@@ -133,10 +132,10 @@ Anova(q4_model, type = "II")
 
 | Source | df | Sum Sq | F value | p-value | Decision |
 |---|---|---|---|---|---|
-| Transportation Mode | 3 | 7.68 | 1.35 | 0.263 | Fail to reject H₀ |
-| Product Type | 2 | 2.37 | 0.62 | 0.539 | Fail to reject H₀ |
-| Mode × Type (Interaction) | 6 | 21.99 | 3.05 | **0.014** | **Reject H₀ ✅** |
-| Residuals | 88 | 105.22 | — | — | — |
+| Transportation Mode | 3 | 9.07 | 1.61 | 0.193 | Fail to reject H₀ |
+| Product Type | 2 | 5.13 | 1.37 | 0.261 | Fail to reject H₀ |
+| Mode × Type (Interaction) | 6 | 32.00 | 2.84 | **0.014** | **Reject H₀ ✅** |
+| Residuals | 88 | 165.45 | — | — | — |
 
 **Post-Hoc: One-Way ANOVA within each Transportation Mode**
 
