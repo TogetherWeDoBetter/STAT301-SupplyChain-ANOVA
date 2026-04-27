@@ -109,9 +109,7 @@ Since the F-test was not significant, no post-hoc (Tukey) testing is needed. *( 
 **Why two-way ANOVA with Type II SS:** Two categorical IVs and one continuous DV — factorial design. The 4×3 = 12-cell design is **unbalanced** (cell sizes range 4–13), so the default `aov()` function using Type I sums of squares gives order-dependent results and is incorrect here. Type II SS via `Anova()` from the `car` package is used instead, which is order-independent and appropriate for unbalanced designs. 
 
 ```r
-library(car)
-q4_model <- lm(Defect.rates ~ Transportation.modes * Product.type, data = q4_data)
-Anova(q4_model, type = "II")
+q2_model <- lm(Defect.rates ~ Transportation.modes + Product.type + Transportation.modes * Product.type, data = q2_data)
 ```
 
 **Hypotheses (three sets):**
