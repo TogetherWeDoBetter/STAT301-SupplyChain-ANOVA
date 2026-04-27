@@ -9,7 +9,7 @@ This project applies **Analysis of Variance (ANOVA)** methods to a real-world su
 - **Observations:** 100
 - **Variables:** 24
 - **Tools:** R (primary statistical analysis), JMP (exploratory distribution analysis)
-- **Final Report:** `STAT301_FinalProject_Li_Stoven`
+- **Final Report:** `STAT301_FinalProject_Li_Stoven.docx`
 
 ---
 
@@ -76,11 +76,11 @@ During the project, four research questions were explored before selecting the t
 - Independent variable: Product Type (categorical factor, 3 levels: cosmetics, haircare, skincare)
 - Dependent variable: Manufacturing Costs (continuous numeric)
 
-**Why one-way ANOVA:** Comparing means across 3 groups. Using 3 pairwise t-tests at α=0.05 would inflate Type I error ANOVA performs a single F-test (F = MS_B / MS_W) to control this. *(Module 3)*
+**Why one-way ANOVA:** Comparing means across 3 groups. Using 3 pairwise t-tests at α=0.05 would inflate Type I error — overall confidence drops from 95% to ~85.7%. ANOVA performs a single F-test (F = MS_B / MS_W) to control this. *(Module 3)*
 
 **Hypotheses:**
-- H₀: μ_cosmetics = μ_haircare = μ_skincare
-- H₁: At least one product type mean is different from the others
+- H0: μ_cosmetics = μ_haircare = μ_skincare
+- Ha: At least one product type mean is different from the others
 
 **ANOVA Results:**
 
@@ -89,9 +89,9 @@ During the project, four research questions were explored before selecting the t
 | Product Type | 2 | 629.0 | 314.6 | 0.370 | 0.692 |
 | Residuals | 97 | 82531.0 | 850.8 | — | — |
 
-**Decision:** p = 0.692 > 0.05 → **Fail to reject H₀**
+**Decision:** p = 0.692 > 0.05 → **Fail to reject H0**
 
-Since the F-test was not significant, no post-hoc (Tukey) testing is needed. *( Tukey is only run when ANOVA shows means are not all equal.)*
+Since the F-test was not significant, no post-hoc (Tukey) testing is needed. *(Per Module 3: Tukey is only run when ANOVA shows means are not all equal.)*
 
 **Conclusion:** No significant difference in manufacturing costs across product types. Group means: cosmetics $43.05, haircare $48.46, skincare $48.99. The $5.94 range is not statistically meaningful.
 
@@ -106,17 +106,21 @@ Since the F-test was not significant, no post-hoc (Tukey) testing is needed. *( 
 - Independent variable 2: Product Type (categorical factor, 3 levels: cosmetics, haircare, skincare)
 - Dependent variable: Defect Rates (continuous numeric)
 
-**Why two-way ANOVA with Type II SS:** Two categorical IVs and one continuous DV — factorial design. The 4×3 = 12-cell design is **unbalanced** (cell sizes range 4–13), so the default `aov()` function using Type I sums of squares gives order-dependent results and is incorrect here. Type II SS via `Anova()` from the `car` package is used instead, which is order-independent and appropriate for unbalanced designs. 
+**Why two-way ANOVA with Type II SS:** Two categorical IVs and one continuous DV — factorial design. The 4×3 = 12-cell design is **unbalanced** (cell sizes range 4–13), so the default `aov()` function using Type I sums of squares gives order-dependent results and is incorrect here. Type II SS via `Anova()` from the `car` package is used instead, which is order-independent and appropriate for unbalanced designs. *(Module 4)*
 
 ```r
 library(car)
-q2_model <- lm(Defect.rates ~ Transportation.modes + Product.type + Transportation.modes * Product.type, data = q2_data)
+q4_model <- lm(Defect.rates ~ Transportation.modes * Product.type, data = q4_data)
+Anova(q4_model, type = "II")
 ```
 
 **Hypotheses (three sets):**
-- H₀ / H₁ (Transportation Mode): Mean defect rates equal / At least two means are different. 
-- H₀ / H₁ (Product Type): Mean defect rates equal / At least two means are different
-- H₀ / H₁ (Interaction): No interaction / the effect of transportation mode depends on product type
+- H0 (Transportation Mode): Mean defect rates are equal across all modes
+- Ha (Transportation Mode): At least two means are different
+- H0 (Product Type): Mean defect rates are equal across all product types
+- Ha (Product Type): At least two means are different
+- H0 (Interaction): There is no interaction between transportation mode and product type
+- Ha (Interaction): There is an interaction between transportation mode and product type
 
 **Unbalanced Cell Counts:**
 
@@ -132,14 +136,14 @@ q2_model <- lm(Defect.rates ~ Transportation.modes + Product.type + Transportati
 
 | Source | df | Sum Sq | F value | p-value | Decision |
 |---|---|---|---|---|---|
-| Transportation Mode | 3 | 9.07 | 1.61 | 0.193 | Fail to reject H₀ |
-| Product Type | 2 | 5.13 | 1.37 | 0.261 | Fail to reject H₀ |
-| Mode × Type (Interaction) | 6 | 32.00 | 2.84 | **0.014** | **Reject H₀ ✅** |
+| Transportation Mode | 3 | 9.07 | 1.61 | 0.193 | Fail to reject H0 |
+| Product Type | 2 | 5.13 | 1.37 | 0.261 | Fail to reject H0 |
+| Mode × Type (Interaction) | 6 | 32.00 | 2.84 | **0.014** | **Reject H0 ✅** |
 | Residuals | 88 | 165.45 | — | — | — |
 
 **Post-Hoc: One-Way ANOVA within each Transportation Mode**
 
-Because the interaction was significant, data were filtered by transportation mode and one-way ANOVA was applied within each level to identify where product type differences lie. *(Per Module 4 slide 21: when interaction is significant, filter to one level and compare the other factor.)*
+Because the interaction was significant, data were filtered by transportation mode and one-way ANOVA was applied within each level to identify where product type differences lie.
 
 ```r
 # Example: Air transportation
@@ -189,7 +193,7 @@ This is made more compelling by the Q1 result: product type does not affect manu
 |---|---|
 | `original_supply_chain.csv` | Raw dataset from Kaggle before cleaning |
 | `Cleaned_Supply_Chain_Data.csv` | Final cleaned dataset used for all analyses |
-| `FinalProjectQ1.Rmd` & `FinalProjectQ2.Rmd| Final R Markdown with all Q1 and Q4 analysis code |
+| `FinalProjectQ1.Rmd` & `FinalProjectQ2.Rmd` | Final R Markdown with all Q1 and Q4 analysis code |
 | `STAT301_FinalProject_Li_Stoven.docx` | Final submitted report (Q1 + Q4, double-spaced, 2–6 pages) |
 
 ---
