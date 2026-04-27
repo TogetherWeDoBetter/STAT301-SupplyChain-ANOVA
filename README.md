@@ -76,11 +76,11 @@ During the project, four research questions were explored before selecting the t
 - Independent variable: Product Type (categorical factor, 3 levels: cosmetics, haircare, skincare)
 - Dependent variable: Manufacturing Costs (continuous numeric)
 
-**Why one-way ANOVA:** Comparing means across 3 groups. Using 3 pairwise t-tests at α=0.05 would inflate Type I error — overall confidence drops from 95% to ~85.7%. ANOVA performs a single F-test (F = MS_B / MS_W) to control this. *(Module 3)*
+**Why one-way ANOVA:** Comparing means across 3 groups. Using 3 pairwise t-tests at α=0.05 would inflate Type I error ANOVA performs a single F-test (F = MS_B / MS_W) to control this. *(Module 3)*
 
 **Hypotheses:**
 - H₀: μ_cosmetics = μ_haircare = μ_skincare
-- H₁: At least one product type has a different mean manufacturing cost
+- H₁: At least two means are different
 
 **ANOVA Results:**
 
@@ -91,7 +91,7 @@ During the project, four research questions were explored before selecting the t
 
 **Decision:** p = 0.692 > 0.05 → **Fail to reject H₀**
 
-Since the F-test was not significant, no post-hoc (Tukey) testing is needed. *(Per Module 3: Tukey is only run when ANOVA shows means are not all equal.)*
+Since the F-test was not significant, no post-hoc (Tukey) testing is needed. *( Tukey is only run when ANOVA shows means are not all equal.)*
 
 **Conclusion:** No significant difference in manufacturing costs across product types. Group means: cosmetics $43.05, haircare $48.46, skincare $48.99. The $5.94 range is not statistically meaningful.
 
@@ -106,7 +106,7 @@ Since the F-test was not significant, no post-hoc (Tukey) testing is needed. *(P
 - Independent variable 2: Product Type (categorical factor, 3 levels: cosmetics, haircare, skincare)
 - Dependent variable: Defect Rates (continuous numeric)
 
-**Why two-way ANOVA with Type II SS:** Two categorical IVs and one continuous DV — factorial design. The 4×3 = 12-cell design is **unbalanced** (cell sizes range 4–13), so the default `aov()` function using Type I sums of squares gives order-dependent results and is incorrect here. Type II SS via `Anova()` from the `car` package is used instead, which is order-independent and appropriate for unbalanced designs. *(Module 4)*
+**Why two-way ANOVA with Type II SS:** Two categorical IVs and one continuous DV — factorial design. The 4×3 = 12-cell design is **unbalanced** (cell sizes range 4–13), so the default `aov()` function using Type I sums of squares gives order-dependent results and is incorrect here. Type II SS via `Anova()` from the `car` package is used instead, which is order-independent and appropriate for unbalanced designs. 
 
 ```r
 library(car)
@@ -115,8 +115,8 @@ Anova(q4_model, type = "II")
 ```
 
 **Hypotheses (three sets):**
-- H₀ / H₁ (Transportation Mode): Mean defect rates equal / at least one mode differs
-- H₀ / H₁ (Product Type): Mean defect rates equal / at least one product type differs
+- H₀ / H₁ (Transportation Mode): Mean defect rates equal / At least two means are different. 
+- H₀ / H₁ (Product Type): Mean defect rates equal / At least two means are different
 - H₀ / H₁ (Interaction): No interaction / the effect of transportation mode depends on product type
 
 **Unbalanced Cell Counts:**
